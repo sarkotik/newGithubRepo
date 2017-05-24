@@ -1,5 +1,9 @@
 package com.example.brian.mapsactivity;
 
+import android.content.Context;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
@@ -9,6 +13,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -38,9 +43,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        //double latitude = location.getLatitude();
+        //double longitude = location.getLongitude();
+
+
+
+
+
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        LatLng birthPlace = new LatLng(32.7157, -117.1611);
+        //LatLng currentPos = new LatLng(latitude, longitude);
+        mMap.addMarker(new MarkerOptions().position(birthPlace).title("Born Here!!!!"));
+        //mMap.addMarker(new MarkerOptions().position(currentPos).title("Current Pos!!!!"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(birthPlace));
     }
 }
+
+
+
