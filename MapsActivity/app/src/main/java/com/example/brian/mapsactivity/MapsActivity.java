@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -13,6 +15,8 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -24,6 +28,10 @@ import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static android.location.LocationManager.GPS_PROVIDER;
 import static android.location.LocationManager.NETWORK_PROVIDER;
@@ -40,6 +48,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final float MIN_DISTANCE_CHANGE_FOR_UPDATES = 5.0f;
     private Location myLocation = null;
     private LatLng userLocation = null;
+    Button searchButton;
+    EditText search;
     private static final float MY_LOCATION_ZOOM_FACTORY = 17;
     private boolean isTracked = false;
 
@@ -149,6 +159,55 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    public void search(View v) {
+        mMap.clear();
+        search = (EditText) findViewById(R.id.editText_searcher);
+        searchButton = (Button) findViewById(R.id.button_search);
+
+        String location = search.getText().toString();
+        List<Address> addressList = new ArrayList<>();
+        List<Address> distanceList = new ArrayList<>();
+
+        //checks to see if nothing is entered in the search so the app doesn't crash
+        if (location.equals("")) {
+            Toast.makeText(MapsActivity.this, "No Search Entered", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        else if (myLocation == null)
+        {
+            //if there is no location within the radius and the app needs a fallback
+            Toast.makeText(MapsActivity.this, "No known location; please press 'Track Me' then try searching again", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        else if (location != null || !location.equals("")) {
+            Log.d("MyMaps", "search feature started");
+            Geocoder geocoder = new Geocoder(this);
+
+
+            try {
+                addressList = geocoder.getFromLocationName(location, 1000,(myLocation.getLatitude()-(5.0/60)), (myLocation.getLongitude()-(5.0/60)),(myLocation.getLatitude()+(5.0/60)),(myLocation.getLongitude()+(5.0/60)));
+
+                Log.d("MyMaps", "made a max 100 entry search result");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            for (int i = 0; i < addressList.size(); i++) {
+                Address address = addressList.get(i);
+                LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+                mMap.addMarker(new MarkerOptions().position(latLng).title("Search Results"));
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+            }
+        }
+    }
+
+    public void clearMarkers(View v) {
+        mMap.clear();
+    }
+
+
+
 
 
     public void changeMapType(View v) {
@@ -158,26 +217,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         }
     }
-    /*
-    public void search(View view) {
-        EditText locationSearch = (EditText) findViewById(R.id.searchField);
-        String location = locationSearch.getText().toString();
-        List<Address> addressList = null;
-
-        if (location != null || !location.equals("")) {
-            Geocoder geocoder = new Geocoder(this);
-            try {
-                addressList = geocoder.getFromLocationName(location, 1);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Address address = addressList.get(0);
-            LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
-            mMap.addMarker(new MarkerOptions().position(latLng).title("Search Results"));
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-        }
-    } */
 
 
     public void dropMarker(String provider) {
