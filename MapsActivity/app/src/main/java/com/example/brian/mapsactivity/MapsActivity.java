@@ -49,9 +49,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location myLocation = null;
     private LatLng userLocation = null;
     Button searchButton;
+    private boolean isTracked = true;
     EditText search;
     private static final float MY_LOCATION_ZOOM_FACTORY = 17;
-    private boolean isTracked = false;
+    private boolean gpsColor = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +108,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void getLocation() {
+        isTracked = false;
 
         try {
             locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -203,7 +205,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void clearMarkers(View v) {
+
         mMap.clear();
+
     }
 
 
@@ -248,9 +252,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Toast.makeText(MapsActivity.this, "" + myLocation.getLatitude() + ", " +myLocation.getLongitude(), Toast.LENGTH_SHORT).show();
 
             CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, MY_LOCATION_ZOOM_FACTORY);
+            Circle myCircle;
 
             //add a shape for a marker (don't use standard teardrop marker)
-            Circle myCircle = mMap.addCircle(new CircleOptions().center(userLocation).radius(1).strokeColor(Color.MAGENTA).strokeWidth(2).fillColor(Color.MAGENTA));
+            if (gpsColor == true){
+                myCircle = mMap.addCircle(new CircleOptions().center(userLocation).radius(1).strokeColor(Color.MAGENTA).strokeWidth(2).fillColor(Color.MAGENTA));
+                Log.d("MyMaps", "magenta dot laid for GPS");
+            }
+            else if (gpsColor == false){
+                myCircle = mMap.addCircle(new CircleOptions().center(userLocation).radius(1).strokeColor(Color.RED).strokeWidth(2).fillColor(Color.RED));
+                Log.d("MyMaps", "red dot laid for Network");
+            }
+
 
             mMap.animateCamera(update);
         }
@@ -258,14 +271,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void trackMe(View view) {
-        isTracked = true;
+
         if (isTracked == true) {
+            Toast.makeText(MapsActivity.this, "getting location", Toast.LENGTH_SHORT).show();
             getLocation();
-            isTracked = false;
+
         }
-        if (isTracked == false) {
-            return;
+        else if (isTracked == false) {
+            locationManager.removeUpdates(locationListenerNetwork);
+            locationManager.removeUpdates(locationListenerGps);
+            Toast.makeText(MapsActivity.this, "Stopping Tracking", Toast.LENGTH_SHORT).show();
+            isTracked = true;
         }
+    }
+
+    public void stopTrack(View view) {
+        isTracked = false;
     }
 
 
@@ -281,6 +302,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             // disable network updates (see locationManager API to remove updates)
             locationManager.removeUpdates(locationListenerNetwork);
+            gpsColor = true;
 
         }
 
@@ -341,6 +363,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             //drop a marker on the map (create a method called drop a marker)
             dropMarker(LocationManager.NETWORK_PROVIDER);
+            gpsColor = false;
 
             //relaunch request for network location updates
 
